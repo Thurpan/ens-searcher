@@ -40,7 +40,7 @@ npm run scan -- --skip-existing
 Use `--skip-existing` to avoid rescanning labels whose latest database result is
 not an error. Previous `error` results are retried.
 
-Query the latest available and temp-premium results:
+Query the 100 latest available and temp-premium results, cheapest first:
 
 ```powershell
 npm run query

@@ -267,6 +267,9 @@ export function queryLatestNameChecks(
       INNER JOIN latest ON latest.latest_id = nc.id
       ${statusFilter}
       ORDER BY
+        CASE WHEN nc.total_wei IS NULL THEN 1 ELSE 0 END,
+        length(nc.total_wei),
+        nc.total_wei,
         CASE nc.status
           WHEN 'available' THEN 0
           WHEN 'temp_premium' THEN 1

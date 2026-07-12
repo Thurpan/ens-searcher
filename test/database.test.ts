@@ -149,4 +149,67 @@ describe("database", () => {
       db.close();
     }
   });
+
+  it("orders latest available rows by cheapest total price first", () => {
+    const db = openScanDatabase(":memory:");
+
+    try {
+      const runId = insertScanRun(db, {
+        startedAt: "2026-07-12T00:00:00.000Z",
+        durationSeconds: 31_536_000,
+        inputCount: 3,
+      });
+
+      insertNameCheck(db, {
+        scanRunId: runId,
+        originalInput: "expensive",
+        normalizedLabel: "expensive",
+        fullName: "expensive.eth",
+        status: "available",
+        expiryTimestamp: 0,
+        graceEndTimestamp: 7_776_000,
+        baseWei: "100000000000000000000",
+        premiumWei: "0",
+        totalWei: "100000000000000000000",
+        checkedBlock: "123",
+        errorMessage: null,
+      });
+      insertNameCheck(db, {
+        scanRunId: runId,
+        originalInput: "cheap-premium",
+        normalizedLabel: "cheap-premium",
+        fullName: "cheap-premium.eth",
+        status: "temp_premium",
+        expiryTimestamp: 0,
+        graceEndTimestamp: 7_776_000,
+        baseWei: "1000",
+        premiumWei: "1000",
+        totalWei: "2000",
+        checkedBlock: "123",
+        errorMessage: null,
+      });
+      insertNameCheck(db, {
+        scanRunId: runId,
+        originalInput: "mid",
+        normalizedLabel: "mid",
+        fullName: "mid.eth",
+        status: "available",
+        expiryTimestamp: 0,
+        graceEndTimestamp: 7_776_000,
+        baseWei: "10000",
+        premiumWei: "0",
+        totalWei: "10000",
+        checkedBlock: "123",
+        errorMessage: null,
+      });
+
+      expect(queryLatestAvailable(db, 100).map((row) => row.full_name)).toEqual([
+        "cheap-premium.eth",
+        "mid.eth",
+        "expensive.eth",
+      ]);
+    } finally {
+      db.close();
+    }
+  });
 });
