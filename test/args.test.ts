@@ -10,11 +10,18 @@ describe("parseScanArgs", () => {
 });
 
 describe("parseQueryArgs", () => {
-  it("parses all-status and manual ETH/USD flags", () => {
-    expect(parseQueryArgs(["--all", "--eth-usd", "3500.25"])).toMatchObject({
+  it("parses length, all-status, and manual ETH/USD flags", () => {
+    expect(parseQueryArgs(["--length", "4", "--all", "--eth-usd", "3500.25"])).toMatchObject({
+      labelLength: 4,
       includeAll: true,
       ethUsdPrice: 3500.25,
     });
+  });
+
+  it("rejects invalid label lengths", () => {
+    expect(() => parseQueryArgs(["--length", "0"])).toThrow(
+      "--length must be a positive integer",
+    );
   });
 
   it("rejects invalid ETH/USD prices", () => {

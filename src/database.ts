@@ -234,16 +234,28 @@ export function queryLatestAvailable(
   db: SqliteDatabase,
   limit: number,
 ): LatestAvailableRow[] {
-  return queryLatestNameChecks(db, { limit, includeAll: false }) as LatestAvailableRow[];
+  return queryLatestNameChecks(db, {
+    limit,
+    includeAll: false,
+    labelLength: null,
+  }) as LatestAvailableRow[];
 }
 
 export function queryLatestNameChecks(
   db: SqliteDatabase,
-  options: { limit: number; includeAll: boolean },
+  options: { limit: number; includeAll: boolean; labelLength: number | null },
 ): LatestNameCheckRow[] {
-  const statusFilter = options.includeAll
-    ? ""
-    : "WHERE nc.status IN ('available', 'temp_premium')";
+  const filters: string[] = [];
+
+  if (!options.includeAll) {
+    filters.push("nc.status IN ('available', 'temp_premium')");
+  }
+
+  if (options.labelLength !== null) {
+    filters.push("length(nc.normalized_label) = @labelLength");
+  }
+
+  const whereClause = filters.length > 0 ? `WHERE ${filters.join(" AND ")}` : "";
 
   return db
     .prepare(`
@@ -265,7 +277,7 @@ export function queryLatestNameChecks(
         nc.checked_block
       FROM name_checks nc
       INNER JOIN latest ON latest.latest_id = nc.id
-      ${statusFilter}
+      ${whereClause}
       ORDER BY
         CASE WHEN nc.total_wei IS NULL THEN 1 ELSE 0 END,
         length(nc.total_wei),
@@ -281,5 +293,8 @@ export function queryLatestNameChecks(
         nc.normalized_label
       LIMIT @limit
     `)
-    .all({ limit: options.limit }) as LatestNameCheckRow[];
+    .all({
+      limit: options.limit,
+      labelLength: options.labelLength,
+    }) as LatestNameCheckRow[];
 }

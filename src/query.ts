@@ -27,6 +27,7 @@ async function main(): Promise<void> {
   try {
     const rows = queryLatestNameChecks(db, {
       limit: options.limit,
+      labelLength: options.labelLength,
       includeAll: options.includeAll,
     });
 
@@ -83,9 +84,10 @@ async function main(): Promise<void> {
 function printHelp(): void {
   console.log(`
 Usage:
-  npm run query -- [--db data/ens-scans.sqlite] [--limit 100] [--all] [--eth-usd 3500]
+  npm run query -- [--db data/ens-scans.sqlite] [--limit 100] [--length 4] [--all] [--eth-usd 3500]
 
 Options:
+  --length      Include only names with this many characters before .eth
   --all          Include latest rows for every status, including registered names
   --eth-usd     Use a manual ETH/USD price instead of live lookup
 `.trim());

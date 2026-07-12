@@ -50,6 +50,7 @@ Optional query flags:
 
 ```powershell
 npm run query -- --db data/ens-scans.sqlite --limit 100
+npm run query -- --length 4
 npm run query -- --all
 npm run query -- --eth-usd 3500
 ```

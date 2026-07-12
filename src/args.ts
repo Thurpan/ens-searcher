@@ -15,6 +15,7 @@ export interface ScanCliOptions {
 export interface QueryCliOptions {
   dbPath: string;
   limit: number;
+  labelLength: number | null;
   includeAll: boolean;
   ethUsdPrice: number | null;
   help: boolean;
@@ -85,6 +86,7 @@ export function parseQueryArgs(args: string[]): QueryCliOptions {
   const options: QueryCliOptions = {
     dbPath: DEFAULT_DB_PATH,
     limit: 100,
+    labelLength: null,
     includeAll: false,
     ethUsdPrice: null,
     help: false,
@@ -117,6 +119,17 @@ export function parseQueryArgs(args: string[]): QueryCliOptions {
 
     if (arg.startsWith("--limit=")) {
       options.limit = parsePositiveInteger(valueAfterEquals(arg), "--limit");
+      continue;
+    }
+
+    if (arg === "--length") {
+      options.labelLength = parsePositiveInteger(requireValue(args, index, arg), arg);
+      index += 1;
+      continue;
+    }
+
+    if (arg.startsWith("--length=")) {
+      options.labelLength = parsePositiveInteger(valueAfterEquals(arg), "--length");
       continue;
     }
 

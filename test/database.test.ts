@@ -141,7 +141,9 @@ describe("database", () => {
         errorMessage: null,
       });
 
-      expect(queryLatestNameChecks(db, { limit: 10, includeAll: true })).toEqual([
+      expect(
+        queryLatestNameChecks(db, { limit: 10, includeAll: true, labelLength: null }),
+      ).toEqual([
         expect.objectContaining({ full_name: "available.eth", status: "available" }),
         expect.objectContaining({ full_name: "registered.eth", status: "registered" }),
       ]);
@@ -208,6 +210,67 @@ describe("database", () => {
         "mid.eth",
         "expensive.eth",
       ]);
+    } finally {
+      db.close();
+    }
+  });
+
+  it("filters latest rows by normalized label length", () => {
+    const db = openScanDatabase(":memory:");
+
+    try {
+      const runId = insertScanRun(db, {
+        startedAt: "2026-07-12T00:00:00.000Z",
+        durationSeconds: 31_536_000,
+        inputCount: 3,
+      });
+
+      insertNameCheck(db, {
+        scanRunId: runId,
+        originalInput: "four",
+        normalizedLabel: "four",
+        fullName: "four.eth",
+        status: "available",
+        expiryTimestamp: 0,
+        graceEndTimestamp: 7_776_000,
+        baseWei: "100",
+        premiumWei: "0",
+        totalWei: "100",
+        checkedBlock: "123",
+        errorMessage: null,
+      });
+      insertNameCheck(db, {
+        scanRunId: runId,
+        originalInput: "three",
+        normalizedLabel: "tri",
+        fullName: "tri.eth",
+        status: "available",
+        expiryTimestamp: 0,
+        graceEndTimestamp: 7_776_000,
+        baseWei: "50",
+        premiumWei: "0",
+        totalWei: "50",
+        checkedBlock: "123",
+        errorMessage: null,
+      });
+      insertNameCheck(db, {
+        scanRunId: runId,
+        originalInput: "five",
+        normalizedLabel: "fiver",
+        fullName: "fiver.eth",
+        status: "available",
+        expiryTimestamp: 0,
+        graceEndTimestamp: 7_776_000,
+        baseWei: "25",
+        premiumWei: "0",
+        totalWei: "25",
+        checkedBlock: "123",
+        errorMessage: null,
+      });
+
+      expect(
+        queryLatestNameChecks(db, { limit: 100, includeAll: false, labelLength: 4 }),
+      ).toEqual([expect.objectContaining({ full_name: "four.eth" })]);
     } finally {
       db.close();
     }
