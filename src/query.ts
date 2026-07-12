@@ -2,6 +2,17 @@ import "dotenv/config";
 import { parseQueryArgs } from "./args.js";
 import { openScanDatabase, queryLatestNameChecks } from "./database.js";
 import { resolveEthUsdPrice, weiToEth4, weiToUsd } from "./priceDisplay.js";
+import { formatTable, type ColumnAlignment } from "./table.js";
+
+const QUERY_TABLE_ALIGNMENTS: ColumnAlignment[] = [
+  "left",
+  "left",
+  "right",
+  "right",
+  "right",
+  "right",
+  "right",
+];
 
 async function main(): Promise<void> {
   const options = parseQueryArgs(process.argv.slice(2));
@@ -61,6 +72,7 @@ async function main(): Promise<void> {
           weiToEth4(row.premium_wei),
           String(row.scan_run_id),
         ]),
+        QUERY_TABLE_ALIGNMENTS,
       ),
     );
   } finally {
@@ -77,20 +89,6 @@ Options:
   --all          Include latest rows for every status, including registered names
   --eth-usd     Use a manual ETH/USD price instead of live lookup
 `.trim());
-}
-
-function formatTable(headers: string[], rows: string[][]): string {
-  const widths = headers.map((header, columnIndex) =>
-    Math.max(
-      header.length,
-      ...rows.map((row) => (row[columnIndex] ?? "").length),
-    ),
-  );
-  const formatRow = (row: string[]) =>
-    row.map((cell, index) => cell.padEnd(widths[index] ?? 0)).join("  ");
-  const divider = widths.map((width) => "-".repeat(width)).join("  ");
-
-  return [formatRow(headers), divider, ...rows.map(formatRow)].join("\n");
 }
 
 main().catch((error: unknown) => {
