@@ -45,7 +45,11 @@ Optional query flags:
 
 ```powershell
 npm run query -- --db data/ens-scans.sqlite --limit 100
+npm run query -- --all
+npm run query -- --eth-usd 3500
 ```
+
+Query output shows ETH prices rounded to 4 decimal places and USD prices when an ETH/USD rate is available. By default it tries a live CoinGecko spot price; set `ETH_USD_PRICE` in `.env` or pass `--eth-usd` to use a manual rate instead.
 
 ## Validation
 

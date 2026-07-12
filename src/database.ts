@@ -44,6 +44,18 @@ export interface LatestAvailableRow {
   checked_block: string | null;
 }
 
+export interface LatestNameCheckRow {
+  scan_run_id: number;
+  original_input: string;
+  normalized_label: string;
+  full_name: string;
+  status: NameStatus;
+  base_wei: string | null;
+  premium_wei: string | null;
+  total_wei: string | null;
+  checked_block: string | null;
+}
+
 export function openScanDatabase(dbPath = DEFAULT_DB_PATH): SqliteDatabase {
   if (dbPath !== ":memory:") {
     mkdirSync(dirname(dbPath), { recursive: true });
@@ -196,6 +208,17 @@ export function queryLatestAvailable(
   db: SqliteDatabase,
   limit: number,
 ): LatestAvailableRow[] {
+  return queryLatestNameChecks(db, { limit, includeAll: false }) as LatestAvailableRow[];
+}
+
+export function queryLatestNameChecks(
+  db: SqliteDatabase,
+  options: { limit: number; includeAll: boolean },
+): LatestNameCheckRow[] {
+  const statusFilter = options.includeAll
+    ? ""
+    : "WHERE nc.status IN ('available', 'temp_premium')";
+
   return db
     .prepare(`
       WITH latest AS (
@@ -216,11 +239,18 @@ export function queryLatestAvailable(
         nc.checked_block
       FROM name_checks nc
       INNER JOIN latest ON latest.latest_id = nc.id
-      WHERE nc.status IN ('available', 'temp_premium')
+      ${statusFilter}
       ORDER BY
-        CASE nc.status WHEN 'available' THEN 0 ELSE 1 END,
+        CASE nc.status
+          WHEN 'available' THEN 0
+          WHEN 'temp_premium' THEN 1
+          WHEN 'registered' THEN 2
+          WHEN 'grace_period' THEN 3
+          WHEN 'invalid' THEN 4
+          ELSE 5
+        END,
         nc.normalized_label
       LIMIT @limit
     `)
-    .all({ limit }) as LatestAvailableRow[];
+    .all({ limit: options.limit }) as LatestNameCheckRow[];
 }

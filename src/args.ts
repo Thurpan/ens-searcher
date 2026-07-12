@@ -14,6 +14,8 @@ export interface ScanCliOptions {
 export interface QueryCliOptions {
   dbPath: string;
   limit: number;
+  includeAll: boolean;
+  ethUsdPrice: number | null;
   help: boolean;
 }
 
@@ -76,6 +78,8 @@ export function parseQueryArgs(args: string[]): QueryCliOptions {
   const options: QueryCliOptions = {
     dbPath: DEFAULT_DB_PATH,
     limit: 100,
+    includeAll: false,
+    ethUsdPrice: null,
     help: false,
   };
 
@@ -106,6 +110,22 @@ export function parseQueryArgs(args: string[]): QueryCliOptions {
 
     if (arg.startsWith("--limit=")) {
       options.limit = parsePositiveInteger(valueAfterEquals(arg), "--limit");
+      continue;
+    }
+
+    if (arg === "--all") {
+      options.includeAll = true;
+      continue;
+    }
+
+    if (arg === "--eth-usd") {
+      options.ethUsdPrice = parsePositiveNumber(requireValue(args, index, arg), arg);
+      index += 1;
+      continue;
+    }
+
+    if (arg.startsWith("--eth-usd=")) {
+      options.ethUsdPrice = parsePositiveNumber(valueAfterEquals(arg), "--eth-usd");
       continue;
     }
 
@@ -140,6 +160,16 @@ function parsePositiveInteger(value: string, flag: string): number {
 
   if (!Number.isInteger(parsed) || parsed <= 0) {
     throw new Error(`${flag} must be a positive integer`);
+  }
+
+  return parsed;
+}
+
+function parsePositiveNumber(value: string, flag: string): number {
+  const parsed = Number(value);
+
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    throw new Error(`${flag} must be a positive number`);
   }
 
   return parsed;
