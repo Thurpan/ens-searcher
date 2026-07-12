@@ -1,7 +1,11 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { resolveEthUsdPrice, weiToEth4, weiToUsd } from "../src/priceDisplay.js";
 
 describe("price display", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
   it("formats wei values as 4dp ETH", () => {
     expect(weiToEth4("2782178864237097")).toBe("0.0028");
     expect(weiToEth4("18328466144378275485")).toBe("18.3285");
@@ -29,5 +33,31 @@ describe("price display", () => {
         env: { ETH_USD_PRICE: "3500.25" },
       }),
     ).resolves.toEqual({ usd: 3500.25, source: "ETH_USD_PRICE" });
+  });
+
+  it("uses CoinGecko keyless public API without auth headers", async () => {
+    const fetchMock = vi.fn<typeof fetch>(async () =>
+      new Response(JSON.stringify({ ethereum: { usd: 1803.45 } }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(
+      resolveEthUsdPrice({
+        cliPrice: null,
+        env: {},
+      }),
+    ).resolves.toEqual({ usd: 1803.45, source: "CoinGecko" });
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const calls = fetchMock.mock.calls as Array<[RequestInfo | URL, RequestInit?]>;
+    const requestInit = calls[0]?.[1];
+    if (requestInit === undefined) {
+      throw new Error("Expected fetch request init");
+    }
+
+    expect("headers" in requestInit).toBe(false);
   });
 });

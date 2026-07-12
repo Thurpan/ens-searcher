@@ -49,7 +49,7 @@ npm run query -- --all
 npm run query -- --eth-usd 3500
 ```
 
-Query output shows ETH prices rounded to 4 decimal places and USD prices when an ETH/USD rate is available. By default it tries a live CoinGecko spot price; set `ETH_USD_PRICE` in `.env` or pass `--eth-usd` to use a manual rate instead.
+Query output shows ETH prices rounded to 4 decimal places and USD prices when an ETH/USD rate is available. By default it tries CoinGecko's keyless public API with no API key or auth headers; set `ETH_USD_PRICE` in `.env` or pass `--eth-usd` to use a manual rate instead.
 
 ## Validation
 

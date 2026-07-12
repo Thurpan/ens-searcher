@@ -24,7 +24,7 @@ export async function resolveEthUsdPrice(input: {
     return { usd: envPrice, source: "ETH_USD_PRICE" };
   }
 
-  return fetchCoinGeckoEthUsd(input.env.COINGECKO_DEMO_API_KEY);
+  return fetchCoinGeckoEthUsd();
 }
 
 export function weiToEth4(wei: string | null): string {
@@ -49,22 +49,14 @@ export function weiToUsd(wei: string | null, ethUsdPrice: EthUsdPrice | null): s
   }).format(eth * ethUsdPrice.usd);
 }
 
-async function fetchCoinGeckoEthUsd(
-  demoApiKey: string | undefined,
-): Promise<EthUsdPrice | null> {
+async function fetchCoinGeckoEthUsd(): Promise<EthUsdPrice | null> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 5_000);
 
   try {
-    const headers = new Headers();
-    if (demoApiKey) {
-      headers.set("x-cg-demo-api-key", demoApiKey);
-    }
-
     const response = await fetch(
       "https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd",
       {
-        headers,
         signal: controller.signal,
       },
     );
