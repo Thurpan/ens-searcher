@@ -6,8 +6,10 @@ Simple TypeScript scripts for scanning candidate `.eth` names from `names.txt`, 
 
 ```powershell
 npm install
-$env:ETH_RPC_URL="https://your-mainnet-rpc.example"
+Copy-Item .env.example .env
 ```
+
+Edit `.env` and set `ETH_RPC_URL` to your Ethereum mainnet RPC URL. The scanner loads this automatically when you run `npm run scan`.
 
 Create a local `names.txt` file with one name per line. Blank lines and comments are ignored.
 

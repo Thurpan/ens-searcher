@@ -1,3 +1,4 @@
+import "dotenv/config";
 import { parseScanArgs } from "./args.js";
 import { runScan } from "./scanCore.js";
 
@@ -29,7 +30,7 @@ Usage:
   npm run scan -- [--file names.txt] [--db data/ens-scans.sqlite] [--duration-days 365]
 
 Environment:
-  ETH_RPC_URL  Ethereum mainnet RPC URL
+  ETH_RPC_URL  Ethereum mainnet RPC URL, loaded from .env when present
 `.trim());
 }
 
