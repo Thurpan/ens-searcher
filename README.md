@@ -12,6 +12,7 @@ Copy-Item .env.example .env
 Edit `.env` and set `ETH_RPC_URL` to your Ethereum mainnet RPC URL. The scanner loads this automatically when you run `npm run scan`.
 
 Create a local `names.txt` file with one name per line. Blank lines and comments are ignored.
+Names can be bare labels or `.eth` names, and labels shorter than 3 characters are rejected locally.
 
 ```text
 # names.txt

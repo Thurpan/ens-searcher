@@ -39,6 +39,17 @@ describe("input parsing", () => {
     });
   });
 
+  it("rejects labels shorter than 3 characters", () => {
+    expect(normalizeCandidate("ab")).toMatchObject({
+      kind: "invalid",
+      errorMessage: ".eth labels must be at least 3 characters",
+    });
+    expect(normalizeCandidate("xy.eth")).toMatchObject({
+      kind: "invalid",
+      errorMessage: ".eth labels must be at least 3 characters",
+    });
+  });
+
   it("marks ENS normalization failures invalid", () => {
     const candidate = normalizeCandidate("bad\u0000name");
 

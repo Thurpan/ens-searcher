@@ -1,5 +1,7 @@
 import { normalize } from "viem/ens";
 
+const MIN_ETH_LABEL_LENGTH = 3;
+
 export interface RawCandidate {
   lineNumber: number;
   originalInput: string;
@@ -59,6 +61,10 @@ export function normalizeCandidate(input: string): ReadyCandidate | InvalidCandi
 
     if (normalizedLabel.includes(".")) {
       return invalid(originalInput, "Subnames are not supported in v1");
+    }
+
+    if (Array.from(normalizedLabel).length < MIN_ETH_LABEL_LENGTH) {
+      return invalid(originalInput, ".eth labels must be at least 3 characters");
     }
 
     return {
