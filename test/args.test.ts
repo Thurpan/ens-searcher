@@ -1,5 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { parseQueryArgs } from "../src/args.js";
+import { parseQueryArgs, parseScanArgs } from "../src/args.js";
+
+describe("parseScanArgs", () => {
+  it("parses skip-existing scans", () => {
+    expect(parseScanArgs(["--skip-existing"])).toMatchObject({
+      skipExisting: true,
+    });
+  });
+});
 
 describe("parseQueryArgs", () => {
   it("parses all-status and manual ETH/USD flags", () => {

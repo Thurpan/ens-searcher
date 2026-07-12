@@ -8,6 +8,7 @@ export interface ScanCliOptions {
   filePath: string;
   dbPath: string;
   durationDays: number;
+  skipExisting: boolean;
   help: boolean;
 }
 
@@ -24,6 +25,7 @@ export function parseScanArgs(args: string[]): ScanCliOptions {
     filePath: DEFAULT_NAMES_FILE,
     dbPath: DEFAULT_DB_PATH,
     durationDays: DEFAULT_DURATION_DAYS,
+    skipExisting: false,
     help: false,
   };
 
@@ -65,6 +67,11 @@ export function parseScanArgs(args: string[]): ScanCliOptions {
 
     if (arg.startsWith("--duration-days=")) {
       options.durationDays = parsePositiveInteger(valueAfterEquals(arg), "--duration-days");
+      continue;
+    }
+
+    if (arg === "--skip-existing") {
+      options.skipExisting = true;
       continue;
     }
 

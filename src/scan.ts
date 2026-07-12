@@ -15,10 +15,14 @@ async function main(): Promise<void> {
     dbPath: options.dbPath,
     durationDays: options.durationDays,
     rpcUrl: process.env.ETH_RPC_URL,
+    skipExisting: options.skipExisting,
   });
 
   console.log(`Scan run ${summary.runId} complete`);
   console.log(`Input names: ${summary.inputCount}`);
+  if (options.skipExisting) {
+    console.log(`Skipped existing: ${summary.skippedExistingCount}`);
+  }
   console.log(`Rows written: ${summary.scannedCount}`);
   console.log(`Errors: ${summary.errorCount}`);
   console.log(`Database: ${summary.dbPath}`);
@@ -27,7 +31,10 @@ async function main(): Promise<void> {
 function printHelp(): void {
   console.log(`
 Usage:
-  npm run scan -- [--file names.txt] [--db data/ens-scans.sqlite] [--duration-days 365]
+  npm run scan -- [--file names.txt] [--db data/ens-scans.sqlite] [--duration-days 365] [--skip-existing]
+
+Options:
+  --skip-existing  Do not rescan labels already present in the database
 
 Environment:
   ETH_RPC_URL  Ethereum mainnet RPC URL, loaded from .env when present

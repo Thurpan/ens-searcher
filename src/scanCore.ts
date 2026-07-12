@@ -11,7 +11,9 @@ import {
   insertNameCheck,
   insertScanRun,
   openScanDatabase,
+  queryReusableNormalizedLabels,
   type NameCheckInput,
+  type SqliteDatabase,
 } from "./database.js";
 import { createViemEnsClient, type EnsClient, type EnsCheck } from "./ensClient.js";
 import { classifyLifecycle } from "./classification.js";
@@ -24,6 +26,7 @@ export interface RunScanOptions {
   rpcUrl?: string;
   ensClient?: EnsClient;
   nowSeconds?: number;
+  skipExisting?: boolean;
 }
 
 export interface ScanSummary {
@@ -31,6 +34,7 @@ export interface ScanSummary {
   inputCount: number;
   scannedCount: number;
   errorCount: number;
+  skippedExistingCount: number;
   dbPath: string;
 }
 
@@ -40,6 +44,7 @@ export async function runScan(options: RunScanOptions = {}): Promise<ScanSummary
   const durationDays = options.durationDays ?? DEFAULT_DURATION_DAYS;
   const durationSeconds = durationDays * SECONDS_PER_DAY;
   const nowSeconds = options.nowSeconds ?? Math.floor(Date.now() / 1000);
+  const skipExisting = options.skipExisting ?? false;
   const ensClient =
     options.ensClient ?? createClientFromRpcUrl(options.rpcUrl ?? process.env.ETH_RPC_URL);
 
@@ -48,6 +53,7 @@ export async function runScan(options: RunScanOptions = {}): Promise<ScanSummary
   const preparedCandidates = prepareCandidates(rawCandidates);
 
   const db = openScanDatabase(dbPath);
+  const filteredCandidates = filterExistingCandidates(db, preparedCandidates, skipExisting);
   const startedAt = new Date().toISOString();
   const runId = insertScanRun(db, {
     startedAt,
@@ -59,7 +65,7 @@ export async function runScan(options: RunScanOptions = {}): Promise<ScanSummary
   let errorCount = 0;
 
   try {
-    for (const candidate of preparedCandidates) {
+    for (const candidate of filteredCandidates.candidates) {
       const row = await checkCandidate({
         candidate,
         ensClient,
@@ -83,11 +89,46 @@ export async function runScan(options: RunScanOptions = {}): Promise<ScanSummary
       inputCount: rawCandidates.length,
       scannedCount,
       errorCount,
+      skippedExistingCount: filteredCandidates.skippedExistingCount,
       dbPath,
     };
   } finally {
     db.close();
   }
+}
+
+function filterExistingCandidates(
+  db: SqliteDatabase,
+  candidates: PreparedCandidate[],
+  skipExisting: boolean,
+): { candidates: PreparedCandidate[]; skippedExistingCount: number } {
+  if (!skipExisting) {
+    return { candidates, skippedExistingCount: 0 };
+  }
+
+  const readyLabels = candidates
+    .filter(
+      (candidate): candidate is Extract<PreparedCandidate, { kind: "ready" }> =>
+        candidate.kind === "ready",
+    )
+    .map((candidate) => candidate.normalizedLabel);
+  const reusableLabels = queryReusableNormalizedLabels(db, readyLabels);
+  let skippedExistingCount = 0;
+
+  const filteredCandidates = candidates.filter((candidate) => {
+    if (candidate.kind === "invalid") {
+      return true;
+    }
+
+    if (!reusableLabels.has(candidate.normalizedLabel)) {
+      return true;
+    }
+
+    skippedExistingCount += 1;
+    return false;
+  });
+
+  return { candidates: filteredCandidates, skippedExistingCount };
 }
 
 async function checkCandidate(input: {

@@ -6,6 +6,7 @@ import {
   openScanDatabase,
   queryLatestAvailable,
   queryLatestNameChecks,
+  queryReusableNormalizedLabels,
 } from "../src/database.js";
 
 describe("database", () => {
@@ -48,6 +49,53 @@ describe("database", () => {
           status: "available",
           total_wei: "100",
         }),
+      ]);
+    } finally {
+      db.close();
+    }
+  });
+
+  it("finds labels with reusable latest results", () => {
+    const db = openScanDatabase(":memory:");
+
+    try {
+      const runId = insertScanRun(db, {
+        startedAt: "2026-07-12T00:00:00.000Z",
+        durationSeconds: 31_536_000,
+        inputCount: 2,
+      });
+
+      insertNameCheck(db, {
+        scanRunId: runId,
+        originalInput: "foo",
+        normalizedLabel: "foo",
+        fullName: "foo.eth",
+        status: "available",
+        expiryTimestamp: 0,
+        graceEndTimestamp: 7_776_000,
+        baseWei: "100",
+        premiumWei: "0",
+        totalWei: "100",
+        checkedBlock: "123",
+        errorMessage: null,
+      });
+      insertNameCheck(db, {
+        scanRunId: runId,
+        originalInput: "retry",
+        normalizedLabel: "retry",
+        fullName: "retry.eth",
+        status: "error",
+        expiryTimestamp: null,
+        graceEndTimestamp: null,
+        baseWei: null,
+        premiumWei: null,
+        totalWei: null,
+        checkedBlock: null,
+        errorMessage: "Too Many Requests",
+      });
+
+      expect([...queryReusableNormalizedLabels(db, ["foo", "retry", "bar"])]).toEqual([
+        "foo",
       ]);
     } finally {
       db.close();

@@ -204,6 +204,32 @@ export function finishScanRun(
   });
 }
 
+export function queryReusableNormalizedLabels(
+  db: SqliteDatabase,
+  normalizedLabels: string[],
+): Set<string> {
+  const reusableLabels = new Set<string>();
+  const statement = db.prepare(`
+    SELECT status
+    FROM name_checks
+    WHERE normalized_label = ?
+    ORDER BY id DESC
+    LIMIT 1
+  `);
+
+  for (const normalizedLabel of normalizedLabels) {
+    const row = statement.get(normalizedLabel) as
+      | { status: NameStatus }
+      | undefined;
+
+    if (row && row.status !== "error") {
+      reusableLabels.add(normalizedLabel);
+    }
+  }
+
+  return reusableLabels;
+}
+
 export function queryLatestAvailable(
   db: SqliteDatabase,
   limit: number,

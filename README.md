@@ -33,7 +33,11 @@ Optional scan flags:
 
 ```powershell
 npm run scan -- --file names.txt --db data/ens-scans.sqlite --duration-days 365
+npm run scan -- --skip-existing
 ```
+
+Use `--skip-existing` to avoid rescanning labels whose latest database result is
+not an error. Previous `error` results are retried.
 
 Query the latest available and temp-premium results:
 
