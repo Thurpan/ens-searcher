@@ -42,6 +42,9 @@ npm run scan -- --skip-existing
 Use `--skip-existing` to avoid rescanning labels whose latest database result is
 not an error. Previous `error` results are retried.
 
+Interactive scans show progress for names being scanned and print elapsed time
+in the final summary.
+
 Query the 100 latest available and temp-premium results, cheapest first:
 
 ```powershell

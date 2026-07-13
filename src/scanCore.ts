@@ -27,6 +27,7 @@ export interface RunScanOptions {
   ensClient?: EnsClient;
   nowSeconds?: number;
   skipExisting?: boolean;
+  onProgress?: (progress: ScanProgress) => void;
 }
 
 export interface ScanSummary {
@@ -36,6 +37,12 @@ export interface ScanSummary {
   errorCount: number;
   skippedExistingCount: number;
   dbPath: string;
+}
+
+export interface ScanProgress {
+  processedCount: number;
+  totalCount: number;
+  skippedExistingCount: number;
 }
 
 export async function runScan(options: RunScanOptions = {}): Promise<ScanSummary> {
@@ -63,8 +70,18 @@ export async function runScan(options: RunScanOptions = {}): Promise<ScanSummary
 
   let scannedCount = 0;
   let errorCount = 0;
+  const totalCount = filteredCandidates.candidates.length;
+  const reportProgress = (): void => {
+    options.onProgress?.({
+      processedCount: scannedCount,
+      totalCount,
+      skippedExistingCount: filteredCandidates.skippedExistingCount,
+    });
+  };
 
   try {
+    reportProgress();
+
     for (const candidate of filteredCandidates.candidates) {
       const row = await checkCandidate({
         candidate,
@@ -80,6 +97,8 @@ export async function runScan(options: RunScanOptions = {}): Promise<ScanSummary
       if (row.status === "error") {
         errorCount += 1;
       }
+
+      reportProgress();
     }
 
     finishScanRun(db, runId, new Date().toISOString(), scannedCount, errorCount);

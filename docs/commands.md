@@ -58,6 +58,8 @@ Default scan behavior:
 - Database: `data/ens-scans.sqlite`
 - Registration duration for pricing: `365` days
 - Network: Ethereum mainnet, using `ETH_RPC_URL`
+- Interactive terminal output: a single-line progress bar for names being
+  scanned, followed by an elapsed-time summary.
 
 Scan usage:
 
@@ -88,6 +90,9 @@ Value flags also support equals syntax:
 ```powershell
 npm run scan -- --file=names.txt --duration-days=365
 ```
+
+When `--skip-existing` is enabled, the progress bar counts only names that still
+need to be scanned after reusable database results are skipped.
 
 ## Query
 

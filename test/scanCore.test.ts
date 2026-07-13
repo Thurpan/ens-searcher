@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { describe, expect, it, vi } from "vitest";
 import { insertNameCheck, insertScanRun, openScanDatabase } from "../src/database.js";
 import type { EnsClient } from "../src/ensClient.js";
-import { runScan } from "../src/scanCore.js";
+import { runScan, type ScanProgress } from "../src/scanCore.js";
 
 describe("runScan", () => {
   it("scans deduplicated names and persists successful results", async () => {
@@ -156,6 +156,7 @@ describe("runScan", () => {
         checkedBlock: 123n,
       })),
     };
+    const progressUpdates: ScanProgress[] = [];
 
     try {
       const summary = await runScan({
@@ -164,6 +165,9 @@ describe("runScan", () => {
         ensClient: client,
         nowSeconds: 1_700_000_000,
         skipExisting: true,
+        onProgress: (progress) => {
+          progressUpdates.push(progress);
+        },
       });
       const resultDb = openScanDatabase(dbPath);
 
@@ -188,6 +192,23 @@ describe("runScan", () => {
           expect.objectContaining({
             full_name: "newname.eth",
           }),
+        ]);
+        expect(progressUpdates).toEqual([
+          {
+            processedCount: 0,
+            totalCount: 2,
+            skippedExistingCount: 1,
+          },
+          {
+            processedCount: 1,
+            totalCount: 2,
+            skippedExistingCount: 1,
+          },
+          {
+            processedCount: 2,
+            totalCount: 2,
+            skippedExistingCount: 1,
+          },
         ]);
       } finally {
         resultDb.close();
