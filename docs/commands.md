@@ -112,7 +112,7 @@ Default query behavior:
 Query usage:
 
 ```powershell
-npm run query -- [--db data/ens-scans.sqlite] [--limit 100] [--length 4] [--all] [--eth-usd 3500]
+npm run query -- [--db data/ens-scans.sqlite] [--limit 100] [--length 4] [--all] [--rank-file data/names.short-alnum-common.txt] [--eth-usd 3500]
 ```
 
 Query flags:
@@ -123,6 +123,7 @@ Query flags:
 | `--limit` | Positive integer | `100` | Maximum number of rows to return. |
 | `--length` | Positive integer | None | Returns only names with this many characters before `.eth`. |
 | `--all` | None | Off | Includes latest rows for every status, including registered, invalid, grace-period, and error rows. |
+| `--rank-file` | Path | None | Orders matching latest rows by a ranked names file before applying `--limit`. |
 | `--eth-usd` | Positive number | None | Uses a manual ETH/USD price instead of live lookup or `ETH_USD_PRICE`. |
 | `--help`, `-h` | None | Off | Prints query help. |
 
@@ -134,6 +135,7 @@ npm run query -- --limit 100
 npm run query -- --length 4
 npm run query -- --length 4 --limit 100
 npm run query -- --all
+npm run query -- --rank-file data/names.short-alnum-common.txt --limit 100
 npm run query -- --eth-usd 3500
 npm run query -- --db data/ens-scans.sqlite --length 4 --limit 100
 ```
@@ -141,8 +143,22 @@ npm run query -- --db data/ens-scans.sqlite --length 4 --limit 100
 Value flags also support equals syntax:
 
 ```powershell
-npm run query -- --length=4 --limit=100 --eth-usd=3500
+npm run query -- --length=4 --rank-file=data/names.short-alnum-common.txt --limit=100 --eth-usd=3500
 ```
+
+Rank files use the same name input rules as scan files: blank lines and
+comments are ignored, names can be bare labels or `.eth` names, ENS
+normalization is applied, and labels shorter than 3 characters are invalid.
+Duplicate normalized labels keep their first rank. Invalid rank-file lines are
+reported as a warning and skipped because invalid ENS labels cannot match saved
+results.
+
+With `--rank-file`, the query first loads all latest rows matching the normal
+status and length filters. Rows whose normalized labels appear in the rank file
+are printed first in rank-file order. Unranked matching rows follow in the
+default cheapest-first order. `--limit` is applied after this ordering. Without
+`--all`, only `available` and `temp_premium` rows are eligible; with `--all`,
+every latest status is eligible.
 
 Query output columns:
 

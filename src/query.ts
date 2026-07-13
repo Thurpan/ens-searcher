@@ -2,6 +2,7 @@ import "dotenv/config";
 import { parseQueryArgs } from "./args.js";
 import { openScanDatabase, queryLatestNameChecks } from "./database.js";
 import { resolveEthUsdPrice, weiToEth4, weiToUsd } from "./priceDisplay.js";
+import { applyQueryRankOrder, loadQueryRankFile } from "./queryRank.js";
 import { formatTable, type ColumnAlignment } from "./table.js";
 
 const QUERY_TABLE_ALIGNMENTS: ColumnAlignment[] = [
@@ -22,16 +23,29 @@ async function main(): Promise<void> {
     return;
   }
 
+  const rankFile =
+    options.rankFilePath === null ? null : loadQueryRankFile(options.rankFilePath);
+
+  if (rankFile !== null && rankFile.invalidLineCount > 0) {
+    console.warn(
+      `Warning: Ignored ${rankFile.invalidLineCount} invalid rank-file line(s); invalid ENS labels cannot match available results.`,
+    );
+  }
+
   const db = openScanDatabase(options.dbPath);
 
   try {
     const rows = queryLatestNameChecks(db, {
-      limit: options.limit,
+      limit: rankFile === null ? options.limit : null,
       labelLength: options.labelLength,
       includeAll: options.includeAll,
     });
+    const outputRows =
+      rankFile === null
+        ? rows
+        : applyQueryRankOrder(rows, rankFile.ranksByLabel, options.limit);
 
-    if (rows.length === 0) {
+    if (outputRows.length === 0) {
       console.log(
         options.includeAll
           ? "No latest results found."
@@ -64,7 +78,7 @@ async function main(): Promise<void> {
           "premium_eth",
           "run",
         ],
-        rows.map((row) => [
+        outputRows.map((row) => [
           row.full_name,
           row.status,
           weiToEth4(row.total_wei),
@@ -84,11 +98,12 @@ async function main(): Promise<void> {
 function printHelp(): void {
   console.log(`
 Usage:
-  npm run query -- [--db data/ens-scans.sqlite] [--limit 100] [--length 4] [--all] [--eth-usd 3500]
+  npm run query -- [--db data/ens-scans.sqlite] [--limit 100] [--length 4] [--all] [--rank-file data/names.short-alnum-common.txt] [--eth-usd 3500]
 
 Options:
   --length      Include only names with this many characters before .eth
   --all          Include latest rows for every status, including registered names
+  --rank-file    Order matching latest rows by a ranked names file before limiting
   --eth-usd     Use a manual ETH/USD price instead of live lookup
 `.trim());
 }

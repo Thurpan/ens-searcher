@@ -18,6 +18,15 @@ describe("parseQueryArgs", () => {
     });
   });
 
+  it("parses rank-file flags", () => {
+    expect(parseQueryArgs(["--rank-file", "data/names.txt"])).toMatchObject({
+      rankFilePath: "data/names.txt",
+    });
+    expect(parseQueryArgs(["--rank-file=data/names.txt"])).toMatchObject({
+      rankFilePath: "data/names.txt",
+    });
+  });
+
   it("rejects invalid label lengths", () => {
     expect(() => parseQueryArgs(["--length", "0"])).toThrow(
       "--length must be a positive integer",
