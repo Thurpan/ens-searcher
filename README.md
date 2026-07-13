@@ -24,6 +24,8 @@ example.eth
 
 ## Scripts
 
+For a complete command reference, see [docs/commands.md](docs/commands.md).
+
 Scan `names.txt` into `data/ens-scans.sqlite`:
 
 ```powershell
