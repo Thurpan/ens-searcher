@@ -42,6 +42,9 @@ npm run scan -- --skip-existing
 Use `--skip-existing` to avoid rescanning labels whose latest database result is
 not an error. Previous `error` results are retried.
 
+Interactive scans show progress for names being scanned and print elapsed time
+in the final summary.
+
 Query the 100 latest available and temp-premium results, cheapest first:
 
 ```powershell
@@ -54,8 +57,12 @@ Optional query flags:
 npm run query -- --db data/ens-scans.sqlite --limit 100
 npm run query -- --length 4
 npm run query -- --all
+npm run query -- --rank-file data/names.short-alnum-common.txt --limit 100
 npm run query -- --eth-usd 3500
 ```
+
+Use `--rank-file` to print matching latest results in the order of a ranked
+name file, with unranked rows following in the default cheapest-first order.
 
 Query output shows ETH prices rounded to 4 decimal places and USD prices when an ETH/USD rate is available. By default it tries CoinGecko's keyless public API with no API key or auth headers; set `ETH_USD_PRICE` in `.env` or pass `--eth-usd` to use a manual rate instead.
 

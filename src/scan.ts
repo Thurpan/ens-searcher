@@ -1,6 +1,7 @@
 import "dotenv/config";
 import { parseScanArgs } from "./args.js";
 import { runScan } from "./scanCore.js";
+import { createScanProgressReporter, formatElapsedTime } from "./scanProgress.js";
 
 async function main(): Promise<void> {
   const options = parseScanArgs(process.argv.slice(2));
@@ -10,13 +11,16 @@ async function main(): Promise<void> {
     return;
   }
 
+  const startedAtMs = Date.now();
   const summary = await runScan({
     filePath: options.filePath,
     dbPath: options.dbPath,
     durationDays: options.durationDays,
     rpcUrl: process.env.ETH_RPC_URL,
     skipExisting: options.skipExisting,
+    onProgress: createScanProgressReporter(process.stdout),
   });
+  const elapsedMs = Date.now() - startedAtMs;
 
   console.log(`Scan run ${summary.runId} complete`);
   console.log(`Input names: ${summary.inputCount}`);
@@ -25,6 +29,7 @@ async function main(): Promise<void> {
   }
   console.log(`Rows written: ${summary.scannedCount}`);
   console.log(`Errors: ${summary.errorCount}`);
+  console.log(`Elapsed: ${formatElapsedTime(elapsedMs)}`);
   console.log(`Database: ${summary.dbPath}`);
 }
 

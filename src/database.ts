@@ -243,7 +243,7 @@ export function queryLatestAvailable(
 
 export function queryLatestNameChecks(
   db: SqliteDatabase,
-  options: { limit: number; includeAll: boolean; labelLength: number | null },
+  options: { limit: number | null; includeAll: boolean; labelLength: number | null },
 ): LatestNameCheckRow[] {
   const filters: string[] = [];
 
@@ -256,6 +256,14 @@ export function queryLatestNameChecks(
   }
 
   const whereClause = filters.length > 0 ? `WHERE ${filters.join(" AND ")}` : "";
+  const limitClause = options.limit === null ? "" : "LIMIT @limit";
+  const parameters: { limit?: number; labelLength: number | null } = {
+    labelLength: options.labelLength,
+  };
+
+  if (options.limit !== null) {
+    parameters.limit = options.limit;
+  }
 
   return db
     .prepare(`
@@ -291,10 +299,7 @@ export function queryLatestNameChecks(
           ELSE 5
         END,
         nc.normalized_label
-      LIMIT @limit
+      ${limitClause}
     `)
-    .all({
-      limit: options.limit,
-      labelLength: options.labelLength,
-    }) as LatestNameCheckRow[];
+    .all(parameters) as LatestNameCheckRow[];
 }

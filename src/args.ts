@@ -17,6 +17,7 @@ export interface QueryCliOptions {
   limit: number;
   labelLength: number | null;
   includeAll: boolean;
+  rankFilePath: string | null;
   ethUsdPrice: number | null;
   help: boolean;
 }
@@ -88,6 +89,7 @@ export function parseQueryArgs(args: string[]): QueryCliOptions {
     limit: 100,
     labelLength: null,
     includeAll: false,
+    rankFilePath: null,
     ethUsdPrice: null,
     help: false,
   };
@@ -135,6 +137,17 @@ export function parseQueryArgs(args: string[]): QueryCliOptions {
 
     if (arg === "--all") {
       options.includeAll = true;
+      continue;
+    }
+
+    if (arg === "--rank-file") {
+      options.rankFilePath = requireValue(args, index, arg);
+      index += 1;
+      continue;
+    }
+
+    if (arg.startsWith("--rank-file=")) {
+      options.rankFilePath = valueAfterEquals(arg);
       continue;
     }
 
