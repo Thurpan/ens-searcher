@@ -1,5 +1,41 @@
-import { describe, expect, it } from "vitest";
-import { formatElapsedTime, formatScanProgress } from "../src/scanProgress.js";
+import { describe, expect, it, vi } from "vitest";
+import {
+  createScanProgressReporter,
+  formatElapsedTime,
+  formatScanProgress,
+} from "../src/scanProgress.js";
+
+describe("createScanProgressReporter", () => {
+  it("writes progress and a final newline to interactive outputs", () => {
+    const write = vi.fn();
+    const reportProgress = createScanProgressReporter({ isTTY: true, write });
+    const initialProgress = {
+      processedCount: 0,
+      totalCount: 1,
+      skippedExistingCount: 0,
+    };
+    const completedProgress = {
+      processedCount: 1,
+      totalCount: 1,
+      skippedExistingCount: 0,
+    };
+
+    reportProgress?.(initialProgress);
+    reportProgress?.(completedProgress);
+
+    expect(write.mock.calls).toEqual([
+      [`\r${formatScanProgress(initialProgress)}`],
+      [`\r${formatScanProgress(completedProgress)}`],
+      ["\n"],
+    ]);
+  });
+
+  it("does not create a reporter for non-interactive outputs", () => {
+    expect(
+      createScanProgressReporter({ isTTY: false, write: vi.fn() }),
+    ).toBeUndefined();
+  });
+});
 
 describe("formatScanProgress", () => {
   it("formats a fixed-width scan progress bar", () => {

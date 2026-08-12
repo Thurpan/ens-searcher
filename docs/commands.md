@@ -150,8 +150,8 @@ Rank files use the same name input rules as scan files: blank lines and
 comments are ignored, names can be bare labels or `.eth` names, ENS
 normalization is applied, and labels shorter than 3 characters are invalid.
 Duplicate normalized labels keep their first rank. Invalid rank-file lines are
-reported as a warning and skipped because invalid ENS labels cannot match saved
-results.
+reported as a warning and skipped when at least one valid label remains. A rank
+file with no valid labels stops the query with an error.
 
 With `--rank-file`, the query first loads all latest rows matching the normal
 status and length filters. Rows whose normalized labels appear in the rank file

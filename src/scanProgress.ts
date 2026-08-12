@@ -1,7 +1,12 @@
 import type { ScanProgress } from "./scanCore.js";
 
+interface ScanProgressOutput {
+  isTTY?: boolean;
+  write(chunk: string): unknown;
+}
+
 export function createScanProgressReporter(
-  output: NodeJS.WriteStream,
+  output: ScanProgressOutput,
 ): ((progress: ScanProgress) => void) | undefined {
   if (!output.isTTY) {
     return undefined;

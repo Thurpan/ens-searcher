@@ -205,11 +205,22 @@ describe("database", () => {
         errorMessage: null,
       });
 
-      expect(queryLatestAvailable(db, 100).map((row) => row.full_name)).toEqual([
+      const expectedNames = [
         "cheap-premium.eth",
         "mid.eth",
         "expensive.eth",
-      ]);
+      ];
+
+      expect(queryLatestAvailable(db, 100).map((row) => row.full_name)).toEqual(
+        expectedNames,
+      );
+      expect(
+        queryLatestNameChecks(db, {
+          limit: null,
+          includeAll: false,
+          labelLength: null,
+        }).map((row) => row.full_name),
+      ).toEqual(expectedNames);
     } finally {
       db.close();
     }
