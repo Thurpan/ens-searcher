@@ -1,0 +1,4 @@
+# One candidate per line.
+# Use either a bare label or a .eth name.
+example
+example.eth

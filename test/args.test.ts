@@ -1,0 +1,41 @@
+import { describe, expect, it } from "vitest";
+import { parseQueryArgs, parseScanArgs } from "../src/args.js";
+
+describe("parseScanArgs", () => {
+  it("parses skip-existing scans", () => {
+    expect(parseScanArgs(["--skip-existing"])).toMatchObject({
+      skipExisting: true,
+    });
+  });
+});
+
+describe("parseQueryArgs", () => {
+  it("parses length, all-status, and manual ETH/USD flags", () => {
+    expect(parseQueryArgs(["--length", "4", "--all", "--eth-usd", "3500.25"])).toMatchObject({
+      labelLength: 4,
+      includeAll: true,
+      ethUsdPrice: 3500.25,
+    });
+  });
+
+  it("parses rank-file flags", () => {
+    expect(parseQueryArgs(["--rank-file", "data/names.txt"])).toMatchObject({
+      rankFilePath: "data/names.txt",
+    });
+    expect(parseQueryArgs(["--rank-file=data/names.txt"])).toMatchObject({
+      rankFilePath: "data/names.txt",
+    });
+  });
+
+  it("rejects invalid label lengths", () => {
+    expect(() => parseQueryArgs(["--length", "0"])).toThrow(
+      "--length must be a positive integer",
+    );
+  });
+
+  it("rejects invalid ETH/USD prices", () => {
+    expect(() => parseQueryArgs(["--eth-usd", "0"])).toThrow(
+      "--eth-usd must be a positive number",
+    );
+  });
+});

@@ -1,0 +1,38 @@
+{
+  "name": "ens-searcher",
+  "version": "0.1.0",
+  "description": "Scan candidate ENS .eth names, store scan history in SQLite, and query saved results.",
+  "private": true,
+  "license": "MIT-0",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Thurpan/ens-searcher.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Thurpan/ens-searcher/issues"
+  },
+  "homepage": "https://github.com/Thurpan/ens-searcher#readme",
+  "engines": {
+    "node": "^20.19.0 || >=22.12.0"
+  },
+  "scripts": {
+    "scan": "tsx src/scan.ts",
+    "query": "tsx src/query.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "build": "tsc -p tsconfig.build.json"
+  },
+  "dependencies": {
+    "better-sqlite3": "^12.4.1",
+    "dotenv": "^17.4.2",
+    "viem": "^2.37.13"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/node": "^24.0.0",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.8"
+  }
+}
