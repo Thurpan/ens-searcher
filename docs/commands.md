@@ -5,6 +5,9 @@ queries the latest saved results.
 
 ## Setup
 
+Install Node.js `20.19` or later on the Node.js 20 release line. For newer
+release lines, install Node.js `22.12` or later.
+
 Install dependencies:
 
 ```powershell
@@ -23,6 +26,10 @@ Set `ETH_RPC_URL` in `.env` before running scans:
 ETH_RPC_URL=https://your-mainnet-rpc.example
 ETH_USD_PRICE=
 ```
+
+Treat `ETH_RPC_URL` as a secret because provider credentials can be part of the
+URL. Scan failures store a short diagnostic message and remove the configured
+RPC URL before writing the error to SQLite.
 
 `ETH_USD_PRICE` is optional. Use it when you want query output to use a fixed
 manual ETH/USD price instead of live lookup.
@@ -60,6 +67,11 @@ Default scan behavior:
 - Network: Ethereum mainnet, using `ETH_RPC_URL`
 - Interactive terminal output: a single-line progress bar for names being
   scanned, followed by an elapsed-time summary.
+- Network operations: read-only contract calls. The scanner does not submit
+  transactions or register names.
+
+Availability and prices are point-in-time observations. Run a new scan to
+refresh saved results.
 
 Scan usage:
 

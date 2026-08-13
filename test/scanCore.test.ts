@@ -1,6 +1,7 @@
 import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
+import { BaseError } from "viem";
 import { describe, expect, it, vi } from "vitest";
 import { insertNameCheck, insertScanRun, openScanDatabase } from "../src/database.js";
 import type { EnsClient } from "../src/ensClient.js";
@@ -93,6 +94,84 @@ describe("runScan", () => {
           status: "error",
           error_message: "RPC failed",
         });
+      } finally {
+        db.close();
+      }
+    } finally {
+      await rm(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  it("does not persist RPC credentials from viem failures", async () => {
+    const tempDir = await mkdtemp(join(tmpdir(), "ens-searcher-"));
+    const filePath = join(tempDir, "names.txt");
+    const dbPath = join(tempDir, "ens-scans.sqlite");
+    const rpcUrl = "https://rpc.example/PUBLIC_RELEASE_SECRET_SENTINEL";
+    await writeFile(filePath, "boom\n", "utf8");
+
+    const client: EnsClient = {
+      checkName: vi.fn(async () => {
+        throw new BaseError("HTTP request failed.", {
+          metaMessages: [`URL: ${rpcUrl}`],
+        });
+      }),
+    };
+
+    try {
+      await runScan({
+        filePath,
+        dbPath,
+        ensClient: client,
+        rpcUrl,
+        nowSeconds: 1_700_000_000,
+      });
+      const db = openScanDatabase(dbPath);
+
+      try {
+        const row = db.prepare("SELECT error_message FROM name_checks").get() as {
+          error_message: string;
+        };
+
+        expect(row.error_message).toBe("HTTP request failed.");
+        expect(row.error_message).not.toContain("PUBLIC_RELEASE_SECRET_SENTINEL");
+      } finally {
+        db.close();
+      }
+    } finally {
+      await rm(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  it("redacts the configured RPC URL from other client failures", async () => {
+    const tempDir = await mkdtemp(join(tmpdir(), "ens-searcher-"));
+    const filePath = join(tempDir, "names.txt");
+    const dbPath = join(tempDir, "ens-scans.sqlite");
+    const rpcUrl = "https://rpc.example/PUBLIC_RELEASE_SECRET_SENTINEL";
+    await writeFile(filePath, "boom\n", "utf8");
+
+    const client: EnsClient = {
+      checkName: vi.fn(async () => {
+        throw new Error(`RPC failed at ${rpcUrl}`);
+      }),
+    };
+
+    try {
+      await runScan({
+        filePath,
+        dbPath,
+        ensClient: client,
+        rpcUrl,
+        nowSeconds: 1_700_000_000,
+      });
+      const db = openScanDatabase(dbPath);
+
+      try {
+        const row = db.prepare("SELECT error_message FROM name_checks").get() as {
+          error_message: string;
+        };
+
+        expect(row.error_message).toBe("RPC failed at [redacted RPC URL]");
+        expect(row.error_message).not.toContain("PUBLIC_RELEASE_SECRET_SENTINEL");
       } finally {
         db.close();
       }

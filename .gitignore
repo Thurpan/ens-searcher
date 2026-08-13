@@ -16,5 +16,9 @@ data/
 .env
 .env.*
 !.env.example
+*.key
+*.pem
+*.p12
+*.pfx
 names.txt
 *.log

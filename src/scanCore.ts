@@ -1,4 +1,5 @@
 import { readFile } from "node:fs/promises";
+import { BaseError } from "viem";
 import {
   DEFAULT_DB_PATH,
   DEFAULT_DURATION_DAYS,
@@ -52,8 +53,8 @@ export async function runScan(options: RunScanOptions = {}): Promise<ScanSummary
   const durationSeconds = durationDays * SECONDS_PER_DAY;
   const nowSeconds = options.nowSeconds ?? Math.floor(Date.now() / 1000);
   const skipExisting = options.skipExisting ?? false;
-  const ensClient =
-    options.ensClient ?? createClientFromRpcUrl(options.rpcUrl ?? process.env.ETH_RPC_URL);
+  const rpcUrl = options.rpcUrl ?? process.env.ETH_RPC_URL;
+  const ensClient = options.ensClient ?? createClientFromRpcUrl(rpcUrl);
 
   const content = await readNamesFile(filePath);
   const rawCandidates = parseNamesFile(content);
@@ -89,6 +90,7 @@ export async function runScan(options: RunScanOptions = {}): Promise<ScanSummary
         durationSeconds,
         runId,
         nowSeconds,
+        rpcUrl,
       });
 
       insertNameCheck(db, row);
@@ -156,8 +158,9 @@ async function checkCandidate(input: {
   durationSeconds: number;
   runId: number;
   nowSeconds: number;
+  rpcUrl: string | undefined;
 }): Promise<NameCheckInput> {
-  const { candidate, ensClient, durationSeconds, runId, nowSeconds } = input;
+  const { candidate, ensClient, durationSeconds, runId, nowSeconds, rpcUrl } = input;
 
   if (candidate.kind === "invalid") {
     return nameCheckRow({
@@ -183,7 +186,7 @@ async function checkCandidate(input: {
       normalizedLabel: candidate.normalizedLabel,
       fullName: candidate.fullName,
       status: "error",
-      errorMessage: errorMessage(error),
+      errorMessage: errorMessage(error, rpcUrl),
     });
   }
 }
@@ -316,6 +319,20 @@ function isNodeError(error: unknown): error is NodeJS.ErrnoException {
   return error instanceof Error && "code" in error;
 }
 
-function errorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : String(error);
+function errorMessage(error: unknown, rpcUrl: string | undefined): string {
+  let message: string;
+
+  if (error instanceof BaseError) {
+    message = error.shortMessage;
+  } else if (error instanceof Error) {
+    message = error.message;
+  } else {
+    message = String(error);
+  }
+
+  if (!rpcUrl) {
+    return message;
+  }
+
+  return message.replaceAll(rpcUrl, "[redacted RPC URL]");
 }
