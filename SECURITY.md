@@ -2,11 +2,15 @@
 
 ## Report a vulnerability
 
-Do not open a public issue for a potential vulnerability.
+Do not disclose potential vulnerability details in a public issue.
 
 Use the repository's
 [private vulnerability reporting form](https://github.com/Thurpan/ens-searcher/security/advisories/new).
 Include the affected version, reproduction steps, and potential impact.
+
+If the private form is unavailable, open a minimal public issue that asks the
+maintainer for a private contact method. Do not include vulnerability details
+in that issue.
 
 ## Sensitive local files
 
