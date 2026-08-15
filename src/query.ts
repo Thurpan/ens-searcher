@@ -103,7 +103,7 @@ Usage:
 
 Options:
   --length      Include only names with this many characters before .eth
-  --all          Include latest rows for every status, including registered names
+  --all          Include every status for rows with a normalized label
   --rank-file    Order matching latest rows by a ranked names file before limiting
   --eth-usd     Use a manual ETH/USD price instead of live lookup
 `.trim());
