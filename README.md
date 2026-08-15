@@ -82,8 +82,9 @@ npm run scan
 ```
 
 The command reads `names.txt`, requests availability and one-year registration
-prices, and writes the results to `data/ens-scans.sqlite`. It prints progress
-and a summary when the scan finishes.
+prices, and writes the results to `data/ens-scans.sqlite`. When standard output
+is an interactive terminal, it also shows progress. It always prints a summary
+when the scan finishes.
 
 Run the scanner again with `--skip-existing` to skip names whose latest stored
 result is not an error. Names with a previous `error` result are retried.
@@ -121,7 +122,7 @@ npm run query -- --limit 25
 # Return only four-character labels.
 npm run query -- --length 4
 
-# Include registered, grace-period, invalid, and error results.
+# Include every status for rows with a normalized label.
 npm run query -- --all
 
 # Query a different database.
@@ -130,6 +131,9 @@ npm run query -- --db data/custom.sqlite
 # Use a fixed ETH/USD rate instead of the environment or live lookup.
 npm run query -- --eth-usd 3500
 ```
+
+`--all` excludes locally rejected inputs because those rows do not have a
+`normalized_label`. Examples include short labels and subnames.
 
 The output includes the name, status, total ETH and USD prices, base ETH price,
 temporary premium, and scan run ID. USD values are blank when no ETH/USD price

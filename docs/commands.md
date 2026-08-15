@@ -65,8 +65,10 @@ Default scan behavior:
 - Database: `data/ens-scans.sqlite`
 - Registration duration for pricing: `365` days
 - Network: Ethereum mainnet, using `ETH_RPC_URL`
-- Interactive terminal output: a single-line progress bar for names being
-  scanned, followed by an elapsed-time summary.
+- Progress output: a single-line bar only when standard output is an interactive
+  terminal. Redirected output and CI omit the bar.
+- Successful scans: an elapsed-time summary for interactive and redirected
+  output.
 - Network operations: read-only contract calls. The scanner does not submit
   transactions or register names.
 
@@ -103,8 +105,9 @@ Value flags also support equals syntax:
 npm run scan -- --file=names.txt --duration-days=365
 ```
 
-When `--skip-existing` is enabled, the progress bar counts only names that still
-need to be scanned after reusable database results are skipped.
+For interactive output, when `--skip-existing` is enabled, the progress bar
+counts only names that still need to be scanned after reusable database results
+are skipped.
 
 ## Query
 
@@ -134,7 +137,7 @@ Query flags:
 | `--db` | Path | `data/ens-scans.sqlite` | SQLite database path. |
 | `--limit` | Positive integer | `100` | Maximum number of rows to return. |
 | `--length` | Positive integer | None | Returns only names with this many characters before `.eth`. |
-| `--all` | None | Off | Includes latest rows for every status, including registered, invalid, grace-period, and error rows. |
+| `--all` | None | Off | Includes every status for latest rows with a normalized label. Locally rejected inputs are excluded. |
 | `--rank-file` | Path | None | Orders matching latest rows by a ranked names file before applying `--limit`. |
 | `--eth-usd` | Positive number | None | Uses a manual ETH/USD price instead of live lookup or `ETH_USD_PRICE`. |
 | `--help`, `-h` | None | Off | Prints query help. |
@@ -169,8 +172,9 @@ With `--rank-file`, the query first loads all latest rows matching the normal
 status and length filters. Rows whose normalized labels appear in the rank file
 are printed first in rank-file order. Unranked matching rows follow in the
 default cheapest-first order. `--limit` is applied after this ordering. Without
-`--all`, only `available` and `temp_premium` rows are eligible; with `--all`,
-every latest status is eligible.
+`--all`, only `available` and `temp_premium` rows are eligible. With `--all`,
+every status is eligible for the latest rows with a normalized label. Locally
+rejected inputs are excluded because they do not have a `normalized_label`.
 
 Query output columns:
 
