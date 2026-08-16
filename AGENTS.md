@@ -6,6 +6,33 @@ This file adds repo-specific guidance for `ens-searcher`. It should reinforce
 the global agent instructions without introducing a substantially different
 workflow.
 
+## Model and delegation routing
+
+Use only `gpt-5.6-sol`, `gpt-5.6-terra`, and `gpt-5.6-luna`. Always set
+reasoning effort to `xhigh`. Never select another reasoning effort.
+
+The primary agent uses Sol and remains responsible for integration, validation,
+and the final answer. Unnamed subagents use Terra. Use
+`implementation_worker` for routine, scoped implementation or testing after the
+design and security boundaries are settled.
+
+Use Sol liberally for ambiguous or open-ended work, architecture, security,
+trust boundaries, native Windows APIs, ABI, process containment, filesystem
+identity, concurrency, interop, and difficult diagnosis. Use Sol after the first
+straightforward attempt fails, for high-risk or high-value implementation, and
+for review of every material implementation slice. Use `sol_specialist` for
+complex work and `sol_reviewer` for read-only review of a coherent frozen slice
+or final integration.
+
+Use `mechanical_worker` only for deterministic, judgement-light work with an
+exact result, such as formatting, inventories, repetitive transformations,
+link checks, lint cleanup, or mechanical test expansion. Never assign Luna
+security analysis, architecture, native or ABI decisions, difficult debugging,
+HRC interaction, or final review.
+
+Allow at most one active subagent. Do not run a reviewer beside an active
+writer. Freeze the implementation slice before starting `sol_reviewer`.
+
 ## Project Context
 
 - This is a TypeScript ESM CLI project for scanning ENS `.eth` names, storing
