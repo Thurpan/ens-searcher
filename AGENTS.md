@@ -80,6 +80,7 @@ git diff --check
 For code or config changes that can affect behavior, run:
 
 ```powershell
+npm run lint
 npm run typecheck
 npm test
 npm run build

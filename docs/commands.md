@@ -199,6 +199,12 @@ ETH_USD_PRICE=3500
 
 ## Validation Commands
 
+Run Oxlint with the anti-slop rules:
+
+```powershell
+npm run lint
+```
+
 Run the test suite:
 
 ```powershell
@@ -220,6 +226,7 @@ npm run build
 Run all validation commands:
 
 ```powershell
+npm run lint
 npm test
 npm run typecheck
 npm run build

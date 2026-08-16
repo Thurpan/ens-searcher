@@ -172,6 +172,7 @@ query output column.
 Run the project checks:
 
 ```powershell
+npm run lint
 npm run typecheck
 npm test
 npm run build
