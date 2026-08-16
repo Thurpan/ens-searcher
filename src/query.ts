@@ -1,6 +1,7 @@
 import "dotenv/config";
 import { parseQueryArgs } from "./args.js";
 import { openScanDatabase, queryLatestNameChecks } from "./database.js";
+import { errorMessageFromCause } from "./errors.js";
 import { resolveEthUsdPrice, weiToEth4, weiToUsd } from "./priceDisplay.js";
 import { applyQueryRankOrder, loadQueryRankFile } from "./queryRank.js";
 import { formatTable, type ColumnAlignment } from "./table.js";
@@ -108,7 +109,7 @@ Options:
 `.trim());
 }
 
-main().catch((error: unknown) => {
-  console.error(error instanceof Error ? error.message : String(error));
+main().catch((cause: unknown) => {
+  console.error(errorMessageFromCause(cause));
   process.exitCode = 1;
 });

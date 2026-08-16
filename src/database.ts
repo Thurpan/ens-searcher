@@ -56,6 +56,33 @@ export interface LatestNameCheckRow {
   checked_block: string | null;
 }
 
+export interface LatestNameCheckQueryOptions {
+  limit: number | null;
+  includeAll: boolean;
+  labelLength: number | null;
+}
+
+interface ReusableStatusRow {
+  status: NameStatus;
+}
+
+interface LatestNameCheckQueryParameters {
+  limit?: number;
+  labelLength: number | null;
+}
+
+interface LatestNameCheckDatabaseRow {
+  scan_run_id: number;
+  original_input: string;
+  normalized_label: string;
+  full_name: string | null;
+  status: NameStatus;
+  base_wei: string | null;
+  premium_wei: string | null;
+  total_wei: string | null;
+  checked_block: string | null;
+}
+
 export function openScanDatabase(dbPath = DEFAULT_DB_PATH): SqliteDatabase {
   if (dbPath !== ":memory:") {
     mkdirSync(dirname(dbPath), { recursive: true });
@@ -209,7 +236,7 @@ export function queryReusableNormalizedLabels(
   normalizedLabels: string[],
 ): Set<string> {
   const reusableLabels = new Set<string>();
-  const statement = db.prepare(`
+  const statement = db.prepare<[string], ReusableStatusRow>(`
     SELECT status
     FROM name_checks
     WHERE normalized_label = ?
@@ -218,9 +245,7 @@ export function queryReusableNormalizedLabels(
   `);
 
   for (const normalizedLabel of normalizedLabels) {
-    const row = statement.get(normalizedLabel) as
-      | { status: NameStatus }
-      | undefined;
+    const row = statement.get(normalizedLabel);
 
     if (row && row.status !== "error") {
       reusableLabels.add(normalizedLabel);
@@ -238,14 +263,14 @@ export function queryLatestAvailable(
     limit,
     includeAll: false,
     labelLength: null,
-  }) as LatestAvailableRow[];
+  }).filter(isLatestAvailableRow);
 }
 
 export function queryLatestNameChecks(
   db: SqliteDatabase,
-  options: { limit: number | null; includeAll: boolean; labelLength: number | null },
+  options: LatestNameCheckQueryOptions,
 ): LatestNameCheckRow[] {
-  const filters: string[] = [];
+  const filters = ["nc.full_name IS NOT NULL"];
 
   if (!options.includeAll) {
     filters.push("nc.status IN ('available', 'temp_premium')");
@@ -257,7 +282,7 @@ export function queryLatestNameChecks(
 
   const whereClause = filters.length > 0 ? `WHERE ${filters.join(" AND ")}` : "";
   const limitClause = options.limit === null ? "" : "LIMIT @limit";
-  const parameters: { limit?: number; labelLength: number | null } = {
+  const parameters: LatestNameCheckQueryParameters = {
     labelLength: options.labelLength,
   };
 
@@ -266,7 +291,7 @@ export function queryLatestNameChecks(
   }
 
   return db
-    .prepare(`
+    .prepare<LatestNameCheckQueryParameters, LatestNameCheckDatabaseRow>(`
       WITH latest AS (
         SELECT normalized_label, MAX(id) AS latest_id
         FROM name_checks
@@ -301,5 +326,14 @@ export function queryLatestNameChecks(
         nc.normalized_label
       ${limitClause}
     `)
-    .all(parameters) as LatestNameCheckRow[];
+    .all(parameters)
+    .filter(hasFullName);
+}
+
+function hasFullName(row: LatestNameCheckDatabaseRow): row is LatestNameCheckRow {
+  return row.full_name !== null;
+}
+
+function isLatestAvailableRow(row: LatestNameCheckRow): row is LatestAvailableRow {
+  return row.status === "available" || row.status === "temp_premium";
 }

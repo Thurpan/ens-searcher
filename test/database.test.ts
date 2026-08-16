@@ -152,6 +152,62 @@ describe("database", () => {
     }
   });
 
+  it("excludes persisted rows without a full ENS name", () => {
+    const db = openScanDatabase(":memory:");
+
+    try {
+      const runId = insertScanRun(db, {
+        startedAt: "2026-07-12T00:00:00.000Z",
+        durationSeconds: 31_536_000,
+        inputCount: 2,
+      });
+
+      insertNameCheck(db, {
+        scanRunId: runId,
+        originalInput: "incomplete",
+        normalizedLabel: "incomplete",
+        fullName: null,
+        status: "available",
+        expiryTimestamp: 0,
+        graceEndTimestamp: 7_776_000,
+        baseWei: "100",
+        premiumWei: "0",
+        totalWei: "100",
+        checkedBlock: "123",
+        errorMessage: null,
+      });
+      insertNameCheck(db, {
+        scanRunId: runId,
+        originalInput: "complete",
+        normalizedLabel: "complete",
+        fullName: "complete.eth",
+        status: "available",
+        expiryTimestamp: 0,
+        graceEndTimestamp: 7_776_000,
+        baseWei: "200",
+        premiumWei: "0",
+        totalWei: "200",
+        checkedBlock: "123",
+        errorMessage: null,
+      });
+
+      expect(
+        queryLatestNameChecks(db, {
+          limit: null,
+          includeAll: true,
+          labelLength: null,
+        }),
+      ).toEqual([
+        expect.objectContaining({ full_name: "complete.eth", total_wei: "200" }),
+      ]);
+      expect(queryLatestAvailable(db, 1)).toEqual([
+        expect.objectContaining({ full_name: "complete.eth", total_wei: "200" }),
+      ]);
+    } finally {
+      db.close();
+    }
+  });
+
   it("orders latest available rows by cheapest total price first", () => {
     const db = openScanDatabase(":memory:");
 

@@ -2,7 +2,7 @@ import type { ScanProgress } from "./scanCore.js";
 
 interface ScanProgressOutput {
   isTTY?: boolean;
-  write(chunk: string): unknown;
+  write(chunk: string): void;
 }
 
 export function createScanProgressReporter(

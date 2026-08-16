@@ -52,12 +52,30 @@ describe("price display", () => {
     ).resolves.toEqual({ usd: 1803.45, source: "CoinGecko" });
 
     expect(fetchMock).toHaveBeenCalledTimes(1);
-    const calls = fetchMock.mock.calls as Array<[RequestInfo | URL, RequestInit?]>;
-    const requestInit = calls[0]?.[1];
+    const requestInit = fetchMock.mock.calls[0]?.[1];
     if (requestInit === undefined) {
       throw new Error("Expected fetch request init");
     }
 
     expect("headers" in requestInit).toBe(false);
+  });
+
+  it("rejects an untyped CoinGecko USD value", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn<typeof fetch>(async () =>
+        new Response(JSON.stringify({ ethereum: { usd: "1803.45" } }), {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        }),
+      ),
+    );
+
+    await expect(
+      resolveEthUsdPrice({
+        cliPrice: null,
+        env: {},
+      }),
+    ).resolves.toBeNull();
   });
 });

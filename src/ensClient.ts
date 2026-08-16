@@ -25,10 +25,6 @@ export interface EnsClient {
   checkName(label: string, durationSeconds: number): Promise<EnsCheck>;
 }
 
-type PriceResult =
-  | { base: bigint; premium: bigint }
-  | readonly [base: bigint, premium: bigint];
-
 export function createViemEnsClient(rpcUrl: string): EnsClient {
   const publicClient = createPublicClient({
     chain: mainnet,
@@ -82,14 +78,12 @@ export function createViemEnsClient(rpcUrl: string): EnsClient {
         }),
       ]);
 
-      const price = unpackPrice(rentPrice as PriceResult);
-
       return {
         valid,
         available,
         expiryTimestamp,
-        baseWei: price.base,
-        premiumWei: price.premium,
+        baseWei: rentPrice.base,
+        premiumWei: rentPrice.premium,
         checkedBlock,
       };
     },
@@ -98,15 +92,4 @@ export function createViemEnsClient(rpcUrl: string): EnsClient {
 
 function labelTokenId(label: string): bigint {
   return hexToBigInt(keccak256(toBytes(label)));
-}
-
-function unpackPrice(price: PriceResult): { base: bigint; premium: bigint } {
-  if ("base" in price) {
-    return price;
-  }
-
-  return {
-    base: price[0],
-    premium: price[1],
-  };
 }

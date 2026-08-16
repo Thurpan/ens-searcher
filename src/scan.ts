@@ -1,5 +1,6 @@
 import "dotenv/config";
 import { parseScanArgs } from "./args.js";
+import { errorMessageFromCause } from "./errors.js";
 import { runScan } from "./scanCore.js";
 import { createScanProgressReporter, formatElapsedTime } from "./scanProgress.js";
 
@@ -46,7 +47,7 @@ Environment:
 `.trim());
 }
 
-main().catch((error: unknown) => {
-  console.error(error instanceof Error ? error.message : String(error));
+main().catch((cause: unknown) => {
+  console.error(errorMessageFromCause(cause));
   process.exitCode = 1;
 });

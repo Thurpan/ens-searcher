@@ -5,12 +5,6 @@ export interface EthUsdPrice {
   source: string;
 }
 
-interface CoinGeckoSimplePriceResponse {
-  ethereum?: {
-    usd?: number;
-  };
-}
-
 export async function resolveEthUsdPrice(input: {
   cliPrice: number | null;
   env: NodeJS.ProcessEnv;
@@ -65,10 +59,25 @@ async function fetchCoinGeckoEthUsd(): Promise<EthUsdPrice | null> {
       return null;
     }
 
-    const body = (await response.json()) as CoinGeckoSimplePriceResponse;
-    const usd = body.ethereum?.usd;
+    const body: unknown = await response.json();
 
-    if (typeof usd !== "number" || !Number.isFinite(usd) || usd <= 0) {
+    if (!(body instanceof Object) || !("ethereum" in body)) {
+      return null;
+    }
+
+    const ethereum = body.ethereum;
+    if (!(ethereum instanceof Object) || !("usd" in ethereum)) {
+      return null;
+    }
+
+    const usdValue = ethereum.usd;
+    if (Object.prototype.toString.call(usdValue) !== "[object Number]") {
+      return null;
+    }
+
+    const usd = Number(usdValue);
+
+    if (!Number.isFinite(usd) || usd <= 0) {
       return null;
     }
 

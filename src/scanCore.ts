@@ -17,6 +17,7 @@ import {
   type SqliteDatabase,
 } from "./database.js";
 import { createViemEnsClient, type EnsClient, type EnsCheck } from "./ensClient.js";
+import { errorMessageFromCause } from "./errors.js";
 import { classifyLifecycle } from "./classification.js";
 import { parseNamesFile, prepareCandidates, type PreparedCandidate } from "./input.js";
 
@@ -122,7 +123,7 @@ function filterExistingCandidates(
   db: SqliteDatabase,
   candidates: PreparedCandidate[],
   skipExisting: boolean,
-): { candidates: PreparedCandidate[]; skippedExistingCount: number } {
+) {
   if (!skipExisting) {
     return { candidates, skippedExistingCount: 0 };
   }
@@ -179,14 +180,14 @@ async function checkCandidate(input: {
       runId,
       nowSeconds,
     });
-  } catch (error) {
+  } catch (cause) {
     return nameCheckRow({
       runId,
       originalInput: candidate.originalInput,
       normalizedLabel: candidate.normalizedLabel,
       fullName: candidate.fullName,
       status: "error",
-      errorMessage: errorMessage(error, rpcUrl),
+      errorMessage: scanErrorMessageFromCause(cause, rpcUrl),
     });
   }
 }
@@ -306,29 +307,22 @@ function createClientFromRpcUrl(rpcUrl: string | undefined): EnsClient {
 async function readNamesFile(filePath: string): Promise<string> {
   try {
     return await readFile(filePath, "utf8");
-  } catch (error) {
-    if (isNodeError(error) && error.code === "ENOENT") {
+  } catch (cause) {
+    if (isNodeError(cause) && cause.code === "ENOENT") {
       throw new Error(`Names file not found: ${filePath}`);
     }
 
-    throw error;
+    throw cause;
   }
 }
 
-function isNodeError(error: unknown): error is NodeJS.ErrnoException {
-  return error instanceof Error && "code" in error;
+function isNodeError(cause: unknown): cause is NodeJS.ErrnoException {
+  return cause instanceof Error && "code" in cause;
 }
 
-function errorMessage(error: unknown, rpcUrl: string | undefined): string {
-  let message: string;
-
-  if (error instanceof BaseError) {
-    message = error.shortMessage;
-  } else if (error instanceof Error) {
-    message = error.message;
-  } else {
-    message = String(error);
-  }
+function scanErrorMessageFromCause(cause: unknown, rpcUrl: string | undefined): string {
+  const message =
+    cause instanceof BaseError ? cause.shortMessage : errorMessageFromCause(cause);
 
   if (!rpcUrl) {
     return message;

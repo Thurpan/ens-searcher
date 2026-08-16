@@ -1,4 +1,5 @@
 import { normalize } from "viem/ens";
+import { errorMessageFromCause } from "./errors.js";
 
 const MIN_ETH_LABEL_LENGTH = 3;
 
@@ -73,8 +74,8 @@ export function normalizeCandidate(input: string): ReadyCandidate | InvalidCandi
       normalizedLabel,
       fullName: `${normalizedLabel}.eth`,
     };
-  } catch (error) {
-    return invalid(originalInput, `ENS normalization failed: ${errorMessage(error)}`);
+  } catch (cause) {
+    return invalid(originalInput, `ENS normalization failed: ${errorMessageFromCause(cause)}`);
   }
 }
 
@@ -134,8 +135,4 @@ function invalid(originalInput: string, errorMessage: string): InvalidCandidate 
     originalInput,
     errorMessage,
   };
-}
-
-function errorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : String(error);
 }

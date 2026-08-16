@@ -1,4 +1,4 @@
-import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { BaseError } from "viem";
@@ -6,6 +6,10 @@ import { describe, expect, it, vi } from "vitest";
 import { insertNameCheck, insertScanRun, openScanDatabase } from "../src/database.js";
 import type { EnsClient } from "../src/ensClient.js";
 import { runScan, type ScanProgress } from "../src/scanCore.js";
+
+interface ErrorMessageRow {
+  error_message: string;
+}
 
 describe("runScan", () => {
   it("scans deduplicated names and persists successful results", async () => {
@@ -128,9 +132,12 @@ describe("runScan", () => {
       const db = openScanDatabase(dbPath);
 
       try {
-        const row = db.prepare("SELECT error_message FROM name_checks").get() as {
-          error_message: string;
-        };
+        const row = db
+          .prepare<[], ErrorMessageRow>("SELECT error_message FROM name_checks")
+          .get();
+        if (row === undefined) {
+          throw new Error("Expected an error row");
+        }
 
         expect(row.error_message).toBe("HTTP request failed.");
         expect(row.error_message).not.toContain("PUBLIC_RELEASE_SECRET_SENTINEL");
@@ -166,9 +173,12 @@ describe("runScan", () => {
       const db = openScanDatabase(dbPath);
 
       try {
-        const row = db.prepare("SELECT error_message FROM name_checks").get() as {
-          error_message: string;
-        };
+        const row = db
+          .prepare<[], ErrorMessageRow>("SELECT error_message FROM name_checks")
+          .get();
+        if (row === undefined) {
+          throw new Error("Expected an error row");
+        }
 
         expect(row.error_message).toBe("RPC failed at [redacted RPC URL]");
         expect(row.error_message).not.toContain("PUBLIC_RELEASE_SECRET_SENTINEL");
