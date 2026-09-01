@@ -122,7 +122,7 @@ npm run query -- --limit 25
 # Return only four-character labels.
 npm run query -- --length 4
 
-# Include every status for rows with a normalized label.
+# Include every status for latest rows with a normalized label and full ENS name.
 npm run query -- --all
 
 # Query a different database.
@@ -132,8 +132,9 @@ npm run query -- --db data/custom.sqlite
 npm run query -- --eth-usd 3500
 ```
 
-`--all` excludes locally rejected inputs because those rows do not have a
-`normalized_label`. Examples include short labels and subnames.
+`--all` excludes rows that do not have both a `normalized_label` and
+`full_name`. This includes locally rejected inputs such as short labels and
+subnames.
 
 The output includes the name, status, total ETH and USD prices, base ETH price,
 temporary premium, and scan run ID. USD values are blank when no ETH/USD price

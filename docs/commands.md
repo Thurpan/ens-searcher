@@ -137,7 +137,7 @@ Query flags:
 | `--db` | Path | `data/ens-scans.sqlite` | SQLite database path. |
 | `--limit` | Positive integer | `100` | Maximum number of rows to return. |
 | `--length` | Positive integer | None | Returns only names with this many characters before `.eth`. |
-| `--all` | None | Off | Includes every status for latest rows with a normalized label. Locally rejected inputs are excluded. |
+| `--all` | None | Off | Includes every status for latest rows with a normalized label and full ENS name. Rows that lack either value are excluded. |
 | `--rank-file` | Path | None | Orders matching latest rows by a ranked names file before applying `--limit`. |
 | `--eth-usd` | Positive number | None | Uses a manual ETH/USD price instead of live lookup or `ETH_USD_PRICE`. |
 | `--help`, `-h` | None | Off | Prints query help. |
@@ -173,8 +173,9 @@ status and length filters. Rows whose normalized labels appear in the rank file
 are printed first in rank-file order. Unranked matching rows follow in the
 default cheapest-first order. `--limit` is applied after this ordering. Without
 `--all`, only `available` and `temp_premium` rows are eligible. With `--all`,
-every status is eligible for the latest rows with a normalized label. Locally
-rejected inputs are excluded because they do not have a `normalized_label`.
+every status is eligible for the latest rows with both a normalized label and
+full ENS name. Rows that lack either value are excluded, including locally
+rejected inputs.
 
 Query output columns:
 
