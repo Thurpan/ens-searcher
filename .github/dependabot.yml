@@ -9,6 +9,9 @@ updates:
       - dependency-name: "@types/node"
         versions:
           - ">=23"
+      - dependency-name: "better-sqlite3"
+        versions:
+          - ">=13"
 
   - package-ecosystem: github-actions
     directory: /
