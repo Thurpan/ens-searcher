@@ -30,10 +30,10 @@
     "viem": "^2.56.3"
   },
   "devDependencies": {
-    "@oxlint/plugins": "^1.78.0",
+    "@oxlint/plugins": "^1.81.0",
     "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^22.20.1",
-    "oxlint": "^1.78.0",
+    "oxlint": "^1.81.0",
     "tsx": "^4.23.13",
     "typescript": "^7.0.2",
     "vitest": "^4.1.11"
