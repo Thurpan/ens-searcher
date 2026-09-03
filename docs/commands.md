@@ -5,8 +5,7 @@ queries the latest saved results.
 
 ## Setup
 
-Install Node.js `20.19` or later on the Node.js 20 release line. For newer
-release lines, install Node.js `22.12` or later.
+Install Node.js `22.12` or later.
 
 Install dependencies:
 

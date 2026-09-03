@@ -9,8 +9,7 @@ observations and can change after a scan.
 
 ## Requirements
 
-- Node.js `20.19` or later on the Node.js 20 release line.
-- Node.js `22.12` or later on newer release lines.
+- Node.js `22.12` or later.
 - npm.
 - An Ethereum mainnet RPC URL.
 
